@@ -32,32 +32,18 @@ def get_size_from_input(inp: str, img_width: int, img_height: int):
 
 
 def get_filtered_arr(array: np.ndarray, height: int, width: int, pixel_height, pixel_width, gray_step):
-    i = 0
-    while i < height:
-        j = 0
-        while j < width:
-            pixel_sum = 0
-            pixel_bottom_border = height_arr if (i + pixel_height) > height_arr else i + pixel_height
-            pixel_right_border = width_arr if (j + pixel_width) > width_arr else j + pixel_width
-            for n in range(i, pixel_bottom_border):
-                for k in range(j, pixel_right_border):
-                    r, g, b = array[n][k]
-                    median = (int(r) + int(g) + int(b)) / 3
-                    pixel_sum += median
-            pixel_sum = int(
-                int(pixel_sum // ((pixel_bottom_border - i) * (pixel_right_border - j))) // gray_step) * gray_step
-            for n in range(i, pixel_bottom_border):
-                for k in range(j, pixel_right_border):
-                    array[n][k] = [pixel_sum, pixel_sum, pixel_sum]
-            j += pixel_width
-        i += pixel_height
+    for i in range(0, height, pixel_height):
+        for j in range(0, width, pixel_width):
+            dy = height - i if (i + pixel_height) > height else pixel_height
+            dx = width - j if (j + pixel_width) > width else pixel_width
+            array[i:i + dy, j:j + dx] = int(array[i:i + dy, j:j + dx].sum() / 3 // (dy * dx)) // gray_step * gray_step
     return array
 
 
 img = Image.open("img2.jpg")
-arr = np.array(img)
-height_arr = len(arr)
-width_arr = len(arr[0])
+array = np.array(img)
+height_arr = len(array)
+width_arr = len(array[0])
 
 p_height, p_width = get_size_from_input(input('Please, input pixel parameters\n'
                                               'Possible parameters:\n'
@@ -69,5 +55,5 @@ p_height, p_width = get_size_from_input(input('Please, input pixel parameters\n'
 step = 256 // int(input('Please, input gradation count\n'))
 extension = input('Please, input file extension (jpg, png, etc.)\n')
 
-res = Image.fromarray(get_filtered_arr(arr, height_arr, width_arr, p_height, p_width, step))
+res = Image.fromarray(get_filtered_arr(array, height_arr, width_arr, p_height, p_width, step))
 res.save(f'res.{extension}')
